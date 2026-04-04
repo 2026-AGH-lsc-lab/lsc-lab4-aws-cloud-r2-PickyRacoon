@@ -1,3 +1,16 @@
+### Assignment 2: Scenario A — Cold Start Characterization
+
+| Invocation Type | Init Duration (ms) | Handler Duration (ms) | Total Latency (ms) | Network RTT (ms)               |
+| --------------- | ------------------ | --------------------- | ------------------ | ------------------------------ |
+| Zip Cold        | 680.41             | 88.76                 | 1957.8             | 1188.63 (=1957.8−680.41−88.76) |
+| Container Cold  | 3316.05            | 77.03                 | 2371.9             | −1021.18 / ~200 around       |           |
+| Zip Warm        | 0                  | 88.76                 | 288.2              | 199.44 (=288.2−88.76)          |
+| Container Warm  | 0                  | 77.03                 | 290.6              | 213.57 (=290.6−77.03)          |
+
+Zip cold starts are faster than container cold starts. Zip deployment packages are smaller and simpler, so Lambda can initialize the execution environment quickly. The cold start mostly involves creating a new runtime, loading the zip code, and starting the function. Container deployment requires loading a full container image, starting the container runtime, and initializing all included dependencies, which takes significantly longer.
+
+---
+
 ### Assignment 3: Scenario B — Warm Steady-State Throughput
 
 | Environment | Concurrency | p50 (ms) | p95 (ms) | p99 (ms) | Server avg (ms) |
@@ -26,4 +39,31 @@ The difference in latency arises because of:
 - serialization/deserialization overhead – processing JSON, HTTPS, or other request/response formats
 - server-side queuing – in Fargate/EC2, multiple requests can queue up before being handled by the instance/task
 - Lambda platform overhead – function initialization, container management, and API Gateway routing add additional latency 
-bfd
+
+---
+
+### Assignment 4: Scenario C — Burst from Zero
+
+| Environment | Concurrency | p50 (ms) | p95 (ms) | p99 (ms) | Max (ms) | Cold Starts |
+|---|---|---|---|---|---|---|
+| Lambda (zip) | 10 | 252.2 | 360.6 | 2094.3 | 2094.9 | 680.41 |
+| Lambda (container) | 10 | 248.4 | 343.3 | 2006.3 | 2125.8 | 3316.05 |
+| Fargate | 50 | 4005.5 | 4330.8 | 4683.9 | 5073.7 | - |
+| EC2 | 50 | 456.8090 | 738.1565 | 751.2954 | 751.3389 | - |
+
+Lambda (zip) c=10 - p99 = 2094.3 ms
+Lambda (container) c=10 - p99 = 2006.3 ms
+Fargate c=50 - p99 = 4683.9 ms, 
+EC2 c=50 - p99 = 751.3 ms
+
+Lambda functions can experience cold starts - the first request to a new execution environment must initialize the runtime, load the code/container, and establish connections, this adds significant latency to some requests, which inflates p99. Fargate/EC2 tasks are always running, so they don’t experience this spike - their latency distribution is more consistent.
+
+Warm requests reuse already initialized execution environments (low latency) and cold-start requests hit a new environment (high latency) - this creates a bimodal distribution in the latency histogram.
+
+Lambda (zip) p99 = 2094.3 ms
+Lambda (container) p99 = 2006.3 ms
+
+No, Lambda does not meet the p99 < 500 ms SLO during burst traffic. What would neet to change to meet the SLO:
+- keep a number of Lambda environments warm to eliminate cold starts
+- reduce container startup time, minimize dependencies, or use smaller deployment packages
+- smooth bursts so new environments are pre-warmed
