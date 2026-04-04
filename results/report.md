@@ -26,3 +26,4 @@ The difference in latency arises because of:
 - serialization/deserialization overhead – processing JSON, HTTPS, or other request/response formats
 - server-side queuing – in Fargate/EC2, multiple requests can queue up before being handled by the instance/task
 - Lambda platform overhead – function initialization, container management, and API Gateway routing add additional latency 
+bfd
