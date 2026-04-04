@@ -26,7 +26,7 @@ Zip cold starts are faster than container cold starts. Zip deployment packages a
 | EC2 | 10 | 460.2 | 819.9 | 1033.5 | 527.5 |
 | EC2 | 50 | 439.7123 | 630.7511 | 733.6618 | 453.3939 |
 
-Tail latency instability:
+Tail latency instability occured for:
 - Lambda (zip) c=10
 - Lambda (container) c=10
 
