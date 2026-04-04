@@ -3,7 +3,7 @@
 | Invocation Type | Init Duration (ms) | Handler Duration (ms) | Total Latency (ms) | Network RTT (ms)               |
 | --------------- | ------------------ | --------------------- | ------------------ | ------------------------------ |
 | Zip Cold        | 680.41             | 88.76                 | 1957.8             | 1188.63 (=1957.8−680.41−88.76) |
-| Container Cold  | 3316.05            | 77.03                 | 2371.9             | −1021.18 / ~200 around       |           |
+| Container Cold  | 3316.05            | 77.03                 | 2371.9             | −1021.18 (measurement error)   |           
 | Zip Warm        | 0                  | 88.76                 | 288.2              | 199.44 (=288.2−88.76)          |
 | Container Warm  | 0                  | 77.03                 | 290.6              | 213.57 (=290.6−77.03)          |
 
