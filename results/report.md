@@ -69,3 +69,93 @@ No, Lambda does not meet the p99 < 500 ms SLO during burst traffic. What would n
 - keep a number of Lambda environments warm to eliminate cold starts
 - reduce container startup time, minimize dependencies, or use smaller deployment packages
 - smooth bursts so new environments are pre-warmed
+
+---
+
+### Assignment 5: Cost at Zero Load
+
+18 hours/day idle, 6 hours/day active - zero load
+
+Fargate: 1 vCPU, 0.5 GB RAM
+
+EC2: t2.nano
+
+Lambda: 512 MB, billed only on invocations, no cost when idle
+
+| Environment  | Monthly cost | Notes                                                               |
+| ----------- | ----------------- | ---------------------------------------------------------- |
+| Lambda  | 0$                | billed only on invocations, no cost when idle |
+| Fargate | 30.75$         | tasks consume allocated resources even when idle                   |
+| EC2    | 4.17$             | instances are billed continuously, regardless of traffic          |
+
+Faragate:
+
+Hourly cost = (1 × 0.04048) + (0.5 × 0.004445) = 0.0427025
+
+Monthly cost = 24 × 0.0427025 × 30 ≈ 30.75$
+
+EC2:
+
+Hourly cost = 0.0058
+
+Monthly cost = 24 × 0.0058 × 30 ≈ 4.17 $
+
+---
+
+### Assignment 6: Cost Model, Break-Even, and Recommendation
+
+**Traffic model:**
+- Peak: 100 RPS for 30 minutes/day 
+- Normal: 5 RPS for 5.5 hours/day
+- Idle: 18 hours/day (0 RPS)
+
+**Lambda cost formula:**
+```
+Monthly cost = (requests/month × $0.20/1M) + (GB-seconds/month × $0.0000166667)
+GB-seconds   = requests × duration_seconds × memory_GB
+```
+
+Use your measured p50 handler duration from Scenario B for `duration_seconds` and 512 MB (0.5 GB) for memory.
+
+**Always-on cost:** `hourly_rate × 24 × 30`
+
+**Deliverables:**
+1. Computed monthly cost for each environment under this traffic model.
+2. **Break-even RPS** — at what average RPS does Lambda become more expensive than Fargate? Show the algebra.
+3. A **Cost vs. RPS line chart** showing Lambda's linear cost against Fargate/EC2's flat cost, with the break-even point marked.
+4. **Recommendation** (1 page max):
+   - Given the SLO (p99 < 500ms) and traffic model, which environment do you recommend?
+   - Does your recommended environment meet the SLO as deployed? If not, what changes would be needed (e.g., Lambda provisioned concurrency, more Fargate tasks, auto-scaling)?
+   - Justify with specific numbers from your measurements.
+   - State the conditions under which your recommendation would change (e.g., "if average load exceeds X RPS..." or "if the SLO were relaxed to Y ms...").
+  
+| Environment | Concurrency | p50 (ms) | p95 (ms) | p99 (ms) | Server avg (ms) |
+|---|---|---|---|---|---|
+| Lambda (zip) | 5 | 241.0104 | 421.3647 | 643.8023 | 265.4114 |
+| Lambda (container) | 5 | 231.1565 | 351.5810 | 696.9667 | 241.5507 |
+
+Peak: 
+
+100 × 1800 s = 180000 requests/day
+180000 × 30 = 5400000 requests/month
+
+Normal: 
+
+5 × 19800 s = 99000 requests/day
+99000 × 30 = 2970000 requests/month
+
+Total requests/month = 5400000 + 2970000 = 8370000
+
+Lambda (zip):
+
+8370000 × 0.241 × 0.5 = 1008585 GB-s
+
+Monthly cost = (8370000 × $0.20/1M) + (1008585 × $0.0000166667) ≈ 18.48$
+
+Lambda (container):
+
+8370000 × 0.235 × 0.5 = 981975 GB-s
+
+Monthly cost = (8370000 × $0.20/1M) + (981975 × $0.0000166667) ≈ 18.04$
+
+
