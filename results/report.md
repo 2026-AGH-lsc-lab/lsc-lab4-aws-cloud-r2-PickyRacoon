@@ -7,6 +7,8 @@
 | Zip Warm        | 0                  | 88.76                 | 288.2              | 199.44 (=288.2−88.76)          |
 | Container Warm  | 0                  | 77.03                 | 290.6              | 213.57 (=290.6−77.03)          |
 
+<img src="wykres_2.png" alt="Wykres 2" width="600">
+
 Zip cold starts are faster than container cold starts. Zip deployment packages are smaller and simpler, so Lambda can initialize the execution environment quickly. The cold start mostly involves creating a new runtime, loading the zip code, and starting the function. Container deployment requires loading a full container image, starting the container runtime, and initializing all included dependencies, which takes significantly longer.
 
 ---
