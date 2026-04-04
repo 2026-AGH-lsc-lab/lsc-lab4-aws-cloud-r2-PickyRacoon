@@ -54,8 +54,11 @@ The difference in latency arises because of:
 | EC2 | 50 | 456.8090 | 738.1565 | 751.2954 | 751.3389 | - |
 
 Lambda (zip) c=10 - p99 = 2094.3 ms
+
 Lambda (container) c=10 - p99 = 2006.3 ms
-Fargate c=50 - p99 = 4683.9 ms, 
+
+Fargate c=50 - p99 = 4683.9 ms
+
 EC2 c=50 - p99 = 751.3 ms
 
 Lambda functions can experience cold starts - the first request to a new execution environment must initialize the runtime, load the code/container, and establish connections, this adds significant latency to some requests, which inflates p99. Fargate/EC2 tasks are always running, so they don’t experience this spike - their latency distribution is more consistent.
@@ -63,10 +66,11 @@ Lambda functions can experience cold starts - the first request to a new executi
 Warm requests reuse already initialized execution environments (low latency) and cold-start requests hit a new environment (high latency) - this creates a bimodal distribution in the latency histogram.
 
 Lambda (zip) p99 = 2094.3 ms
+
 Lambda (container) p99 = 2006.3 ms
 
-No, Lambda does not meet the p99 < 500 ms SLO during burst traffic. What would neet to change to meet the SLO:
-- keep a number of Lambda environments warm to eliminate cold starts
+Lambda does not meet the p99 < 500 ms SLO during burst traffic. To meet the SLO, the following changes could be applied:
+- to keep a number of Lambda environments warm to eliminate cold starts
 - reduce container startup time, minimize dependencies, or use smaller deployment packages
 - smooth bursts so new environments are pre-warmed
 
