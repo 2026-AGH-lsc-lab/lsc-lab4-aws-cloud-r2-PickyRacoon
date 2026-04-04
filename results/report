@@ -1,0 +1,28 @@
+### Assignment 3: Scenario B — Warm Steady-State Throughput
+
+| Environment | Concurrency | p50 (ms) | p95 (ms) | p99 (ms) | Server avg (ms) |
+|---|---|---|---|---|---|
+| Lambda (zip) | 5 | 241.0104 | 421.3647 | 643.8023 | 265.4114 |
+| Lambda (zip) | 10 | 245.7 | 442.9 | 1223.9 | 286.7 |
+| Lambda (container) | 5 | 231.1565 | 351.5810 | 696.9667 | 241.5507 |
+| Lambda (container) | 10 | 234.9170 | 307.1483 | 638.6558 | 243.9542 |
+| Fargate | 10 | 811.5 | 1105.5 | 1362.1 | 825.5 |
+| Fargate | 50 | 4010.8 | 4327.6 | 4869.6 | 3910.0 |
+| EC2 | 10 | 460.2 | 819.9 | 1033.5 | 527.5 |
+| EC2 | 50 | 439.7123 | 630.7511 | 733.6618 | 453.3939 |
+
+- Explain why Lambda p50 barely changes between c=5 and c=10 (each request gets its own execution environment), while Fargate/EC2 p50 increases significantly between c=10 and c=50 (requests queue on a single task/instance).
+- Explain what causes the latency difference between server-side `query_time_ms` and client-side p50.
+
+Tail latency instability:
+- Lambda (zip) c=10
+- Lambda (container) c=10
+
+Lambda p50 barely changes because each request runs in its own execution environment - no queuing occurs so the median latency stays stable even as concurrency increases. 
+Fargate/EC2 p50 increases with higher concurrency. Requests queue on a single task or instance when multiple requests arrive simultaneously.
+
+The difference in latency arises because of:
+- network and transport latency – the time it takes to send the request to the server and receive the response
+- serialization/deserialization overhead – processing JSON, HTTPS, or other request/response formats
+- server-side queuing – in Fargate/EC2, multiple requests can queue up before being handled by the instance/task
+- Lambda platform overhead – function initialization, container management, and API Gateway routing add additional latency 
