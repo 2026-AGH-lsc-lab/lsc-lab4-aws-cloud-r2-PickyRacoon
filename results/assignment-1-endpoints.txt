@@ -1,0 +1,46 @@
+--- step 2
+patka@swift:~/lsc-lab4-aws-cloud-r2-PickyRacoon$ aws ecr describe-images --repository-name lsc-knn-app \
+    --image-ids imageTag=latest --query 'imageDetails[0].imageTags'
+# Expected: ["latest"]
+[
+    "latest"
+]
+
+--- step 3
+patka@swift:~/lsc-lab4-aws-cloud-r2-PickyRacoon$ # Test via CLI invoke (bypasses Function URL auth):
+aws lambda invoke --function-name lsc-knn-zip \
+    --cli-binary-format raw-in-base64-out \
+    --payload "$(python3 -c 'import json; q=json.load(open("loadtest/query.json")); print(json.dumps({"body": json.dumps(q)}))')" \
+    /tmp/out.json
+cat /tmp/out.json
+{
+    "StatusCode": 200,
+    "ExecutedVersion": "$LATEST"
+}
+{"statusCode": 200, "headers": {"Content-Type": "application/json", "X-Server-Time-Ms": "83.585", "X-Instance-Id": "2026/04/04/[$LATEST]c99469fd81114105a8d167dc0f07ecc4", "X-Cold-Start": "true"}, "body": "{\"results\": [{\"index\": 35859, \"distance\": 12.001459121704102}, {\"index\": 24682, \"distance\": 12.059946060180664}, {\"index\": 35397, \"distance\": 12.487079620361328}, {\"index\": 20160, \"distance\": 12.489519119262695}, {\"index\": 30454, \"distance\": 12.499402046203613}], \"query_time_ms\": 83.585, \"instance_id\": \"2026/04/04/[$LATEST]c99469fd81114105a8d167dc0f07ecc4\", \"cold_start\": true}"}
+
+--- step 4
+patka@swift:~/lsc-lab4-aws-cloud-r2-PickyRacoon$ # Test via CLI invoke (bypasses Function URL auth):
+aws lambda invoke --function-name lsc-knn-zip \
+    --cli-binary-format raw-in-base64-out \
+    --payload "$(python3 -c 'import json; q=json.load(open("loadtest/query.json")); print(json.dumps({"body": json.dumps(q)}))')" \
+    /tmp/out.json
+cat /tmp/out.json
+{
+    "StatusCode": 200,
+    "ExecutedVersion": "$LATEST"
+}
+{"statusCode": 200, "headers": {"Content-Type": "application/json", "X-Server-Time-Ms": "81.506", "X-Instance-Id": "2026/04/04/[$LATEST]c99469fd81114105a8d167dc0f07ecc4", "X-Cold-Start": "false"}, "body": "{\"results\": [{\"index\": 35859, \"distance\": 12.001459121704102}, {\"index\": 24682, \"distance\": 12.059946060180664}, {\"index\": 35397, \"distance\": 12.487079620361328}, {\"index\": 20160, \"distance\": 12.489519119262695}, {\"index\": 30454, \"distance\": 12.499402046203613}], \"query_time_ms\": 81.506, \"instance_id\": \"2026/04/04/[$LATEST]c99469fd81114105a8d167dc0f07ecc4\", \"cold_start\": false}"}
+
+--- step 5
+patka@swift:~/lsc-lab4-aws-cloud-r2-PickyRacoon$ curl -X POST -H "Content-Type: application/json" \
+-d @loadtest/query.json \
+http://lsc-knn-alb-1761379549.us-east-1.elb.amazonaws.com/search
+{"instance_id":"ip-172-31-81-33.ec2.internal","query_time_ms":24.351,"results":[{"distance":12.001459121704102,"index":35859},{"distance":12.059946060180664,"index":24682},{"distance":12.487079620361328,"index":35397},{"distance":12.489519119262695,"index":20160},{"distance":12.499402046203613,"index":30454}]}
+
+--- step 6
+patka@swift:~/lsc-lab4-aws-cloud-r2-PickyRacoon$ curl -X POST -H "Content-Type: application/json" \
+-d @loadtest/query.json \
+http://44.192.23.99:8080/search
+{"instance_id":"ab83894bb49e","query_time_ms":24.13,"results":[{"distance":12.001459121704102,"index":35859},{"distance":12.059946060180664,"index":24682},{"distance":12.487079620361328,"index":35397},{"distance":12.489519119262695,"index":20160},{"distance":12.499402046203613,"index":30454}]}
+
