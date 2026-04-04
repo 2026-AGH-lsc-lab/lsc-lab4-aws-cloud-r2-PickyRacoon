@@ -26,9 +26,6 @@ Zip cold starts are faster than container cold starts. Zip deployment packages a
 | EC2 | 10 | 460.2 | 819.9 | 1033.5 | 527.5 |
 | EC2 | 50 | 439.7123 | 630.7511 | 733.6618 | 453.3939 |
 
-- Explain why Lambda p50 barely changes between c=5 and c=10 (each request gets its own execution environment), while Fargate/EC2 p50 increases significantly between c=10 and c=50 (requests queue on a single task/instance).
-- Explain what causes the latency difference between server-side `query_time_ms` and client-side p50.
-
 Tail latency instability:
 - Lambda (zip) c=10
 - Lambda (container) c=10
