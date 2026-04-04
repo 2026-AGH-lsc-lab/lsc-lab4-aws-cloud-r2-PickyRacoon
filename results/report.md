@@ -86,7 +86,7 @@ Lambda: 512 MB, billed only on invocations, no cost when idle
 | Environment | Cost 18 hours/day idle  | Monthly cost (active + idle) | Notes                                                               |
 | ----------- | ----------------- | ----------------- | ---------------------------------------------------------- |
 | Lambda  | 0$                | 0$                | billed only on invocations, no cost when idle |
-| Fargate | 0.77$                | 30.75$         | tasks consume allocated resources even when idle                   |
+| Fargate | 0.77$                | 30.75$         | billed for allocated CPU and RAM                   |
 | EC2    | 0.1$                | 4.17$             | instances are billed continuously, regardless of traffic          |
 
 Faragate:
