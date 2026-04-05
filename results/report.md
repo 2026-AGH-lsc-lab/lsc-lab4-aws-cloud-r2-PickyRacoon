@@ -151,7 +151,7 @@ Lambda (zip):
 
 8370000 × 0.241 × 0.5 = 1008585 GB-s
 
-Monthly cost = (8370000 × $0.20/1M) + (1008585 × $0.0000166667) ≈ 18.48$
+Monthly cost = (8370000 × $0.20/1000000) + (1008585 × $0.0000166667) ≈ 18.48$
 
 Lambda (container):
 
@@ -159,4 +159,30 @@ Lambda (container):
 
 Monthly cost = (8370000 × $0.20/1M) + (981975 × $0.0000166667) ≈ 18.04$
 
+Faragate:
+
+Hourly cost = (0.25 × 0.04048) + (0.5 × 0.004445) = 0.0123425
+
+Monthly cost = 24 × 0.0123425 × 30 ≈ 8.89$
+
+EC2:
+
+Monthly cost = 24 × 0.0058 × 30 ≈ 4.17$
+
+| Environment  | Monthly cost (active + idle) |
+| ----------- | ----------------- |
+|  Lambda (zip)  | 18.48$              | 
+|  Lambda (container)  | 18.04$                | 
+| Fargate | 8.89$         |               |
+| EC2    | 4.17$             | 
+
+Total Lambda cost per request: 0.20/1000000 + 0.241 × 0.5 × 0.0000166667 = 0.000002208
+
+Requests per month for RPS = r: r × 60 × 60 × 24 × 30 = r × 2592000
+
+Lambda monthly cost: 2592000r × 0.000002208 ≈ 5.72r
+
+Break-even with EC2: 5.72r = 4.18  => r ≈ 0.73
+
+Break-even with Fargate: 5.72r = 8.89  => r ≈ 1.55
 
