@@ -119,16 +119,6 @@ GB-seconds   = requests × duration_seconds × memory_GB
 Use your measured p50 handler duration from Scenario B for `duration_seconds` and 512 MB (0.5 GB) for memory.
 
 **Always-on cost:** `hourly_rate × 24 × 30`
-
-**Deliverables:**
-1. Computed monthly cost for each environment under this traffic model.
-2. **Break-even RPS** — at what average RPS does Lambda become more expensive than Fargate? Show the algebra.
-3. A **Cost vs. RPS line chart** showing Lambda's linear cost against Fargate/EC2's flat cost, with the break-even point marked.
-4. **Recommendation** (1 page max):
-   - Given the SLO (p99 < 500ms) and traffic model, which environment do you recommend?
-   - Does your recommended environment meet the SLO as deployed? If not, what changes would be needed (e.g., Lambda provisioned concurrency, more Fargate tasks, auto-scaling)?
-   - Justify with specific numbers from your measurements.
-   - State the conditions under which your recommendation would change (e.g., "if average load exceeds X RPS..." or "if the SLO were relaxed to Y ms...").
   
 | Environment | Concurrency | p50 (ms) | p95 (ms) | p99 (ms) | Server avg (ms) |
 |---|---|---|---|---|---|
@@ -185,4 +175,18 @@ Lambda monthly cost: 2592000r × 0.000002208 ≈ 5.72r
 Break-even with EC2: 5.72r = 4.18  => r ≈ 0.73
 
 Break-even with Fargate: 5.72r = 8.89  => r ≈ 1.55
+
+<img src="./figures/cost-vs-rps.png" alt="Wykres 2" width="600">
+
+Recommended environment: EC2
+
+Firstly, Lambda costs around $18/month, while EC2 costs only $4.18/month and Fargate costs $8.88/month. The calculated break-even points show that Lambda becomes more expensive than EC2 at about 0.73 RPS and more expensive than Fargate at 1.55 RPS. The average traffic in the model is 3.23 RPS (8370000/2592000), which is significantly above both break-even points. Therefore, Lambda is the most expensive option under this workload.
+
+Secondly, Lambda does not meet the SLO based on the measurements. The measured p99 latency for Lambda is 643 ms (zip) and 696 ms (container), which exceeds the required 500 ms limit. This indicates that Lambda, as deployed, would violate the service-level objective.
+
+To meet the SLO using Lambda, additional configuration would likely be required. For example, provisioned concurrency could reduce cold-start latency, but it would increase costs and reduce Lambda’s cost advantage further. Alternatively, increasing memory allocation could improve performance, but this would also increase cost because Lambda pricing scales with memory.
+
+An always-on environment such as EC2 or Fargate is more likely to meet the SLO - there are no cold starts and instances remain warm. EC2 also provides the lowest cost among the options, making it the best balance between cost and performance for this workload.
+
+However, this recommendation would change under different conditions. If the average workload dropped below 0.73 RPS, Lambda would become cheaper than EC2. Lambda could also be preferable if traffic were highly bursty with long idle periods, since Lambda incurs no cost when idle. Additionally, if the SLO were relaxed to p99 < 700 ms, the current Lambda deployment might already meet the requirement without further optimization.
 
